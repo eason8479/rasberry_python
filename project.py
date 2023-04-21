@@ -7,7 +7,7 @@ firebase_url = 'https://projectusm-7209a-default-rtdb.firebaseio.com//'
 # return 0 for manual mode; retrun 1 for auto mode
 def state_detate():
     get_data = requests.get(firebase_url+'a.json').json()
-    return get_data['manual']
+    return get_data
 
 # save one thing to firebase
 def save_one(tag, data):
@@ -28,86 +28,108 @@ def change(variable_name, variable_value,delay=1):
     save_one(variable_name,variable_value)
     time.sleep(delay)
 
-def agv_arm_process():
-    # move object from agv to machine
-    change('agv_arm',1,0)
-    change('agv_buffer',0,0)
-    time.sleep(1)
+def agv_arm(mission):
+    if (mission == 'put_in'):
+        # open door
+        change('machine_door', "1")
 
-    # agv arm move reach destination
-    change('agv_arm', 2, 0)
-    change('machine_buffer', 1, 0)
-    time.sleep(1)
+        # move object from agv to machine
+        change('agv_arm', "1", 0)
+        change('agv_buffer', "0", 0)
+        time.sleep(1)
 
-    # avg arm moving
-    change('agv_arm',1)
+        # agv arm move reach destination
+        change('agv_arm', "2", 0)
+        change('machine_buffer', "1", 0)
+        time.sleep(1)
 
-    # arm move to default position
-    change('agv_arm', 0)
+        # avg arm moving back
+        change('agv_arm', "1")
 
-    # close door
-    change('machine_door', 0)
+        # arm move to default position
+        change('agv_arm', "0")
+
+        # close door
+        change('machine_door', "0")
+
+    elif (mission == 'take_out'):
+        # open door
+        change('machine_door', "1")
+
+        # avg arm moving
+        change('agv_arm', "1")
+
+        # avg arm take object from machine
+        change('agv_arm', "2", 0)
+        change('machine_buffer', "0", 0)
+        time.sleep(1)
+
+        # avg arm moving
+        change('agv_arm', "1")
+
+        # avg arm move to default position
+        change('agv_arm', "1", 0)
+        change('agv_buffer', "1", 0)
+        time.sleep(1)
+
+        # close door
+        change('machine_door', "0")
+
+
+def process():
+    agv_arm('put_in')
 
     # processing object...
     time.sleep(5)
 
-    # open door
-    change('machine_door', 1)
-
-    # avg arm moving
-    change('agv_arm',1)
-
-    # avg arm take object from machine
-    change('agv_arm', 2, 0)
-    change('age_buffer', 0, 0)
-    time.sleep(1)
-
-    # avg arm moving
-    change('agv_arm',1)
-
-    # avg arm move to default position
-    change('agv_arm', 1, 0)
-    change('agv_buffer', 1, 0)
-    time.sleep(1)
+    agv_arm('take_out')
 
 time.sleep(5)
 
-if (state_detate() == 0):
+if (state_detate()['manual'] == '\"0\"'):
     #initial status
     data_dictionary = {
         # agv (0:agv is not at machien; 1: agv is at machine)
-        'agv' : 0,
+        'agv' : "0",
         # agv buffer(0: nothing on the agv, 1: something on the agv)
-        'agv_buffer' : 1,
+        'agv_buffer' : "1",
         # machine arm(0: arm is at defult positon, 1: arm is moving, 2: arm is in macine)
-        'agv_arm' : 0,
+        'agv_arm' : "0",
         # machine door(0: closed, 1: open)
-        'machine_door' : 0,
+        'machine_door' : "0",
         # machien buffer(0: nothing in the machine, 1: something in the machine)
-        'machine_buffer' : 0
+        'machine_buffer' : "0"
     }
-    save_all()
+    save_all(data_dictionary)
 
     # agv in
-    change('agv', 1)
+    change('agv', "1")
 
     # machine door open
-    change('machine_door', 1)
-    machine_door = 1
-    save_one('machine_door', machine_door)
+    change('machine_door', "1")
 
     # detect if unwanted object is in the machine
     #   if yes, take it out
-    #   if no, continue   
+    #   if no, continue
+    if (state_detate()['manual'] == '\"1\"'):
+        pass
+    else:
+        pass
     
     # machine door close
-    change('machine_door', 0)
+    change('machine_door', "0")
 
-    # agv put object in the machine
-    agv_arm_process()
+    # agv put object into the machine
+    agv_arm('put_in')
+
+    # processing object...
+    time.sleep(5)
+
+    # agv take out object from the machine
+    agv_arm('take_out')
 
     # agv out
-    change('agv', 0)
+    change('agv', "0")
 
 else:
     pass
