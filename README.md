@@ -30,8 +30,7 @@ scp project_for_pi.py pi@[pi的ip]:[要存的位置]
 ```
 scp myfile.txt pi@192.168.1.100:/home/pi/Documents/
 ```
-4. 
-
+4. 完成！
 
 ## 代辦清單
 - [ ] 連接機台  
