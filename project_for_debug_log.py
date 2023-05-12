@@ -1,30 +1,33 @@
 import time
 import requests
 import json
-import RPi.GPIO as GPIO
-
-# set up for raspberry pi and firebase
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-# pin 2 is for door
-GPIO.setup(2, GPIO.OUT)
-# pin 3 is for arm claw
-GPIO.setup(3, GPIO.OUT)
+import logging
 
 firebase_url = 'https://projectusm-7209a-default-rtdb.firebaseio.com//'
 
+# setting log, make it write to file with format, without showing on console
+
+# set path of log file
+log_file = '/media/pi/log_usb/test.log'
+log_file = '/run/media/eason/log_usb/test.log'
+# set format of log
+log_format = '%(asctime)s  %(levelname)s %(message)s'
+# set level of log
+log_level = logging.INFO
+# set log
+logging.basicConfig(filename=log_file, format=log_format, level=log_level)
+
 def door_open():
-    GPIO.output(2, GPIO.HIGH)
+    pass
 
 def door_close():
-    GPIO.output(2, GPIO.LOW)
+    pass
 
 def arm_claw_open():
-    GPIO.output(3, GPIO.HIGH)
+    pass
 
 def arm_claw_close():
-    GPIO.output(3, GPIO.LOW)
+    pass
 
 # return 0 for manual mode; retrun 1 for auto mode
 def state_detate():
@@ -134,16 +137,21 @@ if (state_detate()['manual'] == '\"0\"'):
 
     # agv in
     change('agv', "1")
+    logging.info('agv arrived')
 
     agv_arm('put_in')
+    logging.info('wrokpiece put in, processing...')
 
     # processing object...
     time.sleep(5)
+    logging.info('processing done')
 
     agv_arm('take_out')
+    logging.info('wrokpiece take out')
 
     # agv out
     change('agv', "0")
+    logging.info('agv leaved')
 
 else:
     while True:
