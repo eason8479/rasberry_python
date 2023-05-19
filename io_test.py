@@ -4,7 +4,6 @@ import time
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-
 # pin 17,27 is for door
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(27, GPIO.OUT)

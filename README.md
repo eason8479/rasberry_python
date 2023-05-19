@@ -9,10 +9,10 @@
 - ust_test.py：usb
 
 ## pin腳用途
- \ | GPIO2 | GPIO3
----| --- | ---
-on | 開門 | 開夾爪
-off| 關門 | 關夾爪
+ \   | GPIO2 | GPIO3 | GPIO17 | GPIO27
+---  | --- | --- | --- | ---
+High | 關夾爪 | 開夾爪 | 開門 | 關門
+Low  | 開夾爪 | 關夾爪 | 關門 | 開門
 
 ![](https://i.imgur.com/DFEKMHD.png)
 
@@ -33,6 +33,6 @@ scp myfile.txt pi@172.20.20.6:/home/pi/
 4. 完成！
 
 ## 代辦清單
-- [ ] 連接機台  
+- [x] 連接機台  
 - [ ] usb存檔  
 - [ ] 隨機延遲  
