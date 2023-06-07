@@ -3,8 +3,7 @@ import logging
 # setting log, make it write to file with format, without showing on console
 
 # set path of log file
-log_file = '/media/pi/log_usb/test.log'
-log_file = '/run/media/eason/log_usb/test.log'
+log_file = '/media/pi/log_usb1/test.log'
 # set format of log
 log_format = '%(asctime)s  %(levelname)s %(message)s'
 # set level of log

@@ -2,6 +2,16 @@ import time
 import requests
 import json
 import RPi.GPIO as GPIO
+import logging
+
+# set path of log file
+log_file = '/media/pi/log_usb1/test.log'
+# set format of log
+log_format = '%(asctime)s  %(levelname)s %(message)s'
+# set level of log
+log_level = logging.INFO
+# set log
+logging.basicConfig(filename=log_file, format=log_format, level=log_level)
 
 # set up for raspberry pi and firebase
 GPIO.setmode(GPIO.BCM)
@@ -62,11 +72,12 @@ def agv_arm(mission):
         # open door
         door_open()
         change('machine_door', "1")
+        logging.info('door open, ready to put in')
 
         # agv arm grap object
         change('agv_claw', "1", 0)
         change('agv_buffer', "0", 0)
-        arm_claw_close()
+        agv_claw_close()
         time.sleep(1)
 
         # move object from agv to machine
@@ -76,39 +87,46 @@ def agv_arm(mission):
         change('agv_claw', "0", 0)
         change('agv_arm', "2", 0)
         change('machine_buffer', "1", 0)
-        arm_claw_open()
+        agv_claw_open()
+        logging.info('object on machine')
         time.sleep(1)
 
         # avg arm moving back
         change('agv_arm', "1")
+        time.sleep(1)
 
         # arm move to default position
         change('agv_arm', "0")
-
         # close door
         door_close()
         change('machine_door', "0")
+        logging.info('door close, ready for processing')
+        time.sleep(1)
 
     elif (mission == 'take_out'):
         # open door
         door_open()
         change('machine_door', "1")
+        logging.info('door open, ready to take out')
+        time.sleep(1)
 
         # avg arm moving
         change('agv_arm', "1")
+        time.sleep(1)
 
         # avg arm take object from machine, close claw
-        arm_claw_close()
+        agv_claw_close()
         change('agv_claw', "1", 0)
         change('agv_arm', "2", 0)
         change('machine_buffer', "0", 0)
+        logging.info('object takeing out form machine')
         time.sleep(1)
 
         # avg arm moving
         change('agv_arm', "1")
 
         # avg arm move to default position, claw open, object on agv
-        arm_claw_open()
+        agv_claw_open()
         change('agv_claw', "0", 0)
         change('agv_arm', "0", 0)
         change('agv_buffer', "1", 0)
@@ -117,70 +135,66 @@ def agv_arm(mission):
         # close door
         door_close()
         change('machine_door', "0")
+        logging.info('door close, processing finshed')
+        time.sleep(1)
     
 time.sleep(5)
 
-if (state_detate()['manual'] == '\"0\"'):
-    #initial status
-    data_dictionary = {
-        # agv (0:agv is not at machien; 1: agv is at machine)
-        'agv' : "0",
-        # agv buffer(0: nothing on the agv, 1: something on the agv)
-        'agv_buffer' : "1",
-        # machine arm(0: arm is at defult positon, 1: arm is moving, 2: arm is in macine)
-        'agv_arm' : "0",
-        # agv claw(0: claw is open, 1: claw is close)
-        "agv_claw" : "0",
-        # machine door(0: closed, 1: open)
-        'machine_door' : "0",
-        # machien buffer(0: nothing in the machine, 1: something in the machine)
-        'machine_buffer' : "0"
-    }
-    save_all(data_dictionary)
+#initial status
+data_dictionary = {
+    # agv (0:agv is not at machien; 1: agv is at machine)
+    'agv' : "0",
+    # agv buffer(0: nothing on the agv, 1: something on the agv)
+    'agv_buffer' : "1",
+    # machine arm(0: arm is at defult positon, 1: arm is moving, 2: arm is in macine)
+    'agv_arm' : "0",
+    # agv claw(0: claw is open, 1: claw is close)
+    "agv_claw" : "0",
+    # machine door(0: closed, 1: open)
+    'machine_door' : "0",
+    # machien buffer(0: nothing in the machine, 1: something in the machine)
+    'machine_buffer' : "0",
+    # porcess(0: not processing, 1: processing)
+    'process' : "0"
+}
+save_all(data_dictionary)
 
-    # agv in
-    change('agv', "1")
+while True:
+    time.sleep(1)
 
-    agv_arm('put_in')
+    if (state_detate()['manual'] == '\"0\"'):
+        if (state_detate()['auto_start'] == '\"1\"'):
+            # agv in
+            change('agv', "1")
 
-    # processing object...
-    time.sleep(5)
+            agv_arm('put_in')
 
-    agv_arm('take_out')
+            # processing object...
+            change('process', "1")
+            logging.info('processing...')
+            time.sleep(5)
+            change('process', "0")
+            logging.info('processing finshed')
 
-    # agv out
-    change('agv', "0")
+            agv_arm('take_out')
 
-else:
-    while True:
+            # agv out
+            change('agv', "0")
+
+            change('auto_start', "0")
+
+    elif state_detate()['manual'] == '\"1\"':
+        time.sleep(1)
         firebase_a = requests.get(firebase_url+'.json').json()['a']
+
         
-        if firebase_a['agv'] == 1:
-            print("agv=1")
+        if firebase_a['agv_claw'] == '\"1\"':#close，夾
+            agv_claw_close()
         else:
-            print("agv=0")
+            agv_claw_open()
+        
+        if firebase_a['machine_door'] == '\"1\"':
+            door_open()
+        else:
+            door_close()
 
-        if firebase_a['agv_arm'] == 1:
-            print("agv_arm=1")
-        else:
-            print("agv_arm=0")
-
-        if firebase_a['agv_buffer'] == 1:
-            print("agv_buffer=1")
-        else:
-            print("agv_buffer=0")
-
-        if firebase_a['agv_claw'] == 1:
-            print("agv_claw=1")
-        else:
-            print("agv_claw=0")
-
-        if firebase_a['machine_buffer'] == 1:
-            print("machine_buffer=1")
-        else:
-            print("machine_buffer=0")
-
-        if firebase_a['machine_door'] == 1:
-            print("machine_door=1")
-        else:
-            print("machine_door=0")

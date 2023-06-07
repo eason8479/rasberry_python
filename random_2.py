@@ -1,4 +1,2 @@
-import numpy
+# create a random list
 
-for i in range (100):
-    print(numpy.random.normal(0, 1))

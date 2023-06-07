@@ -28,7 +28,7 @@ scp project_for_pi.py pi@[pi的ip]:[要存的位置]
 ```
 以下為scp執行例子
 ```
-scp myfile.txt pi@172.20.20.6:/home/pi/
+scp project_for_pi.py pi@172.20.10.6:/home/pi/
 ```
 4. 完成！
 
